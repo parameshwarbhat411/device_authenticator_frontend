@@ -7,7 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React from "react";
 
-// Schema for email validation
+
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
@@ -16,9 +16,9 @@ const API_BASE_URL = "http://0.0.0.0:8000";
 
 export default function Auth() {
   const [verificationToken, setVerificationToken] = useState<string | undefined>();
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility
-  const [modalMessage, setModalMessage] = useState(""); // State to store modal message
-  const [isVerified, setIsVerified] = useState(false); // State to track if the user is verified
+  const [showModal, setShowModal] = useState(false); 
+  const [modalMessage, setModalMessage] = useState(""); 
+  const [isVerified, setIsVerified] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(emailSchema),
@@ -27,9 +27,9 @@ export default function Auth() {
     },
   });
 
-  // Function to check cache for email, token, and expiry
+  
   const checkCacheForToken = (email: string) => {
-    const cachedData = localStorage.getItem(email); // Use email as the cache key
+    const cachedData = localStorage.getItem(email); 
     if (cachedData) {
       const { token, expires_at } = JSON.parse(cachedData);
       const isTokenExpired = new Date(expires_at) < new Date();
@@ -39,21 +39,21 @@ export default function Auth() {
         setIsVerified(true);
         setModalMessage("User is already Biometrically Verified");
         setShowModal(true);
-        return true; // Token is valid
+        return true; 
       } else {
-        localStorage.removeItem(email); // Clear expired token
+        localStorage.removeItem(email); 
       }
     }
-    return false; // Token is expired or does not exist
+    return false;
   };
 
   const verifyMutation = useMutation({
     mutationFn: async (email: string) => {
       try {
-        // Check cache first
+        
         const isTokenValid = checkCacheForToken(email);
         if (isTokenValid) {
-          return; // Skip biometric verification if token is valid
+          return; 
         }
 
         console.log("Starting biometric verification...");
@@ -78,18 +78,18 @@ export default function Auth() {
         }
 
         const data = await res.json();
-        return { email, ...data }; // Return email along with token and expires_at
+        return { email, ...data }; 
       } catch (error) {
         console.error("Verification error:", error);
         throw error;
       }
     },
     onSuccess: (data) => {
-      if (!data) return; // Skip if token is already valid
+      if (!data) return; 
 
       const { email, token, expires_at } = data;
       setVerificationToken(token);
-      localStorage.setItem(email, JSON.stringify({ token, expires_at })); // Cache token with email as key
+      localStorage.setItem(email, JSON.stringify({ token, expires_at })); 
       setIsVerified(true);
       setModalMessage("Biometric verification successful");
       setShowModal(true);
@@ -101,11 +101,11 @@ export default function Auth() {
     },
   });
 
-  // Function to call the protected endpoint
+  
   const callProtectedEndpoint = async () => {
-    // 1) Grab the email from your form or from state
+    
     const email = form.getValues("email");
-    // 2) Get the cached token/expiry from localStorage
+    
     const cachedData = localStorage.getItem(email);
     if (!cachedData) {
       setModalMessage("No token found. Please verify first!");
@@ -113,9 +113,9 @@ export default function Auth() {
       return;
     }
 
-    // 3) Parse out token and expiry
+    
     const { token, expires_at } = JSON.parse(cachedData);
-    // 4) Check if token is expired (basic client-side check)
+    
     if (new Date(expires_at) < new Date()) {
       setModalMessage("Token is expired. Please re-verify biometrics.");
       setShowModal(true);
@@ -124,7 +124,7 @@ export default function Auth() {
 
     try {
       const deviceId = window.navigator.userAgent;
-      // 5) Call the protected endpoint with token + device_id as query params (or use headers)
+      
       const res = await fetch(
         `${API_BASE_URL}/api/protected?token=${token}&device_id=${encodeURIComponent(deviceId)}`
       );
@@ -135,7 +135,7 @@ export default function Auth() {
       }
 
       const protectedData = await res.json();
-      // 6) Show success message or handle data
+      
       setModalMessage(protectedData.message);
       setShowModal(true);
     } catch (error: any) {
@@ -145,10 +145,10 @@ export default function Auth() {
     }
   };
 
-  // Function to handle modal close
+  
   const handleCloseModal = () => {
     setShowModal(false);
-    // window.location.reload(); // Refresh the page
+    
   };
 
   return (
