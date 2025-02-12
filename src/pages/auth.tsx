@@ -15,10 +15,8 @@ const emailSchema = z.object({
 const API_BASE_URL = "http://0.0.0.0:8000";
 
 export default function Auth() {
-  const [verificationToken, setVerificationToken] = useState<string | undefined>();
   const [showModal, setShowModal] = useState(false); 
   const [modalMessage, setModalMessage] = useState(""); 
-  const [isVerified, setIsVerified] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(emailSchema),
@@ -35,8 +33,6 @@ export default function Auth() {
       const isTokenExpired = new Date(expires_at) < new Date();
 
       if (!isTokenExpired) {
-        setVerificationToken(token);
-        setIsVerified(true);
         setModalMessage("User is already Biometrically Verified");
         setShowModal(true);
         return true; 
@@ -88,12 +84,9 @@ export default function Auth() {
       if (!data) return; 
 
       const { email, token, expires_at } = data;
-      setVerificationToken(token);
       localStorage.setItem(email, JSON.stringify({ token, expires_at })); 
-      setIsVerified(true);
       setModalMessage("Biometric verification successful");
       setShowModal(true);
-      console.log("isVerified set to true");
     },
     onError: (error: Error) => {
       setModalMessage(`Error: ${error.message}`);
@@ -108,7 +101,7 @@ export default function Auth() {
     
     const cachedData = localStorage.getItem(email);
     if (!cachedData) {
-      setModalMessage("No token found. Please verify first!");
+      setModalMessage("Verify Yourself to Access the Protected Resources!");
       setShowModal(true);
       return;
     }
@@ -148,7 +141,7 @@ export default function Auth() {
   
   const handleCloseModal = () => {
     setShowModal(false);
-    
+    form.reset();
   };
 
   return (
@@ -199,7 +192,7 @@ export default function Auth() {
   className="btn mt-3 w-100"
   style={{ backgroundColor: "#28a745", borderColor: "#28a745", color: "#fff" }}
   onClick={callProtectedEndpoint}
-  disabled={!isVerified}
+  // disabled={!isVerified}
 >
   Access Protected Resource
 </button>
