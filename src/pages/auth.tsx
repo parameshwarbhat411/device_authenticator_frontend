@@ -6,6 +6,7 @@ import { verifyBiometrics } from "../lib/webAuthn";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React from "react";
+import { ClientJS } from "clientjs"; 
 
 
 const emailSchema = z.object({
@@ -25,7 +26,8 @@ export default function Auth() {
     },
   });
 
-  
+  const client = new ClientJS();
+
   const checkCacheForToken = (email: string) => {
     const cachedData = localStorage.getItem(email); 
     if (cachedData) {
@@ -59,7 +61,7 @@ export default function Auth() {
         }
         console.log("Biometric verification successful");
 
-        const deviceId = window.navigator.userAgent;
+        const deviceId = client.getFingerprint().toString();
         const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
           method: "POST",
           headers: {
@@ -116,7 +118,7 @@ export default function Auth() {
     }
 
     try {
-      const deviceId = window.navigator.userAgent;
+      const deviceId = client.getFingerprint().toString();
       
       const res = await fetch(
         `${API_BASE_URL}/api/protected?token=${token}&device_id=${encodeURIComponent(deviceId)}`
